@@ -5,7 +5,7 @@
 
 
 P2PClient::P2PClient(QHostAddress address, quint16 port, QObject *parent) :
-    QObject(parent), address(address), port(port)
+    QObject(parent), address(address), port(port), globalGroup(0)
 {
     createIdentity();
     socket = new QUdpSocket(this);
@@ -79,7 +79,9 @@ void P2PClient::onHello(QHostAddress &host, quint16 port, QUuid nodeUuid, const 
         nodes.insert(node->uuid(), node);
         sendMessage(node, "WELCOME", me->name());
 
+        globalGroup->addMember(node);
         emit nodeArrives(node);
+        emit groupJoined(node, globalGroup);
     }
     else {
         delete node;
@@ -95,7 +97,10 @@ void P2PClient::onWelcome(QHostAddress &host, quint16 port, QUuid nodeUuid, cons
     node->setPort(port);
     nodes.insert(node->uuid(), node);
 
+    globalGroup->addMember(node);
+
     emit nodeArrives(node);
+    emit groupJoined(node, globalGroup);
 }
 
 void P2PClient::onBye(QHostAddress &host, quint16 port, QUuid nodeUuid, const QString &payload)
@@ -234,7 +239,7 @@ void P2PClient::start()
     emit connected(me);
     emit nodeArrives(me);
 
-    P2PGroup *globalGroup = new P2PGroup(QUuid(), "Global", this);
+    globalGroup = new P2PGroup(QUuid(), "Global", this);
     groups.insert(globalGroup->uuid(), globalGroup);
     globalGroup->addMember(me);
 

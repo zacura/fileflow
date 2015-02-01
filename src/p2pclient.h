@@ -22,6 +22,8 @@ class P2PClient : public QObject
     QHash<QUuid, P2PFile*> files;
     QHash<P2PGroup*, QList<P2PFile*> > groupFiles;
 
+    P2PGroup *globalGroup;
+
     QHostAddress address;
     quint16 port;
 
